@@ -1,4 +1,4 @@
-package com.research.videoAnalyze.processes;
+package com.research.videoAnalyze.controllers;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpRequest;
@@ -10,16 +10,24 @@ import com.google.api.services.youtube.model.ResourceId;
 import com.google.api.services.youtube.model.SearchListResponse;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.Thumbnail;
+import com.google.gson.Gson;
 import com.research.videoAnalyze.models.LinksModel;
-import org.json.JSONArray;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
-import sun.awt.image.ImageWatched;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
@@ -30,13 +38,16 @@ import java.util.regex.Pattern;
 
 public class YouTubeCrawler {
 
-    private static final String PROPERTIES_FILENAME = "youtube.properties";
+    private final String PROPERTIES_FILENAME = "youtube.properties";
 
-    private static YouTube youtube;
+    private String procServerUrl = "http://127.0.0.1:5000/start";
+
+    private YouTube youtube;
     private LinksModel linkModel;
     private List<LinksModel> links;
+    private ArrayList<String> idList;
 
-    public List<LinksModel> search(HashMap<String, String> parameters) {
+    public ArrayList<String> search(HashMap<String, String> parameters) {
 
         links = new ArrayList<>();
         Properties properties = new Properties();
@@ -83,8 +94,7 @@ public class YouTubeCrawler {
 
             if (searchResultList != null) {
                 links = prettyPrint(searchResultList.iterator(), parameters.get("q"), apiKey);
-            }
-            else{
+            } else {
                 LinksModel emptyModel = new LinksModel();
                 emptyModel.setEmptyList("empty");
                 links.add(emptyModel);
@@ -96,20 +106,24 @@ public class YouTubeCrawler {
         } catch (Throwable t) {
             t.printStackTrace();
         }
-
-        return links;
+        /*
+        try {
+            sendStartProcessingRequest(idList);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        */
+        return idList;
     }
 
     private List<LinksModel> prettyPrint(Iterator<SearchResult> iteratorSearchResults, String query, String key) {
 
-        linkModel = new LinksModel();
-        List<LinksModel> linkList = new ArrayList<>();
+        ArrayList<LinksModel> linkList = new ArrayList<>();
+        idList = new ArrayList<>();
 
         if (!iteratorSearchResults.hasNext()) {
             System.out.println(" There aren't any results for your query.");
         }
-
-        List<String> idList = new ArrayList<>();
 
         while (iteratorSearchResults.hasNext()) {
 
@@ -121,15 +135,14 @@ public class YouTubeCrawler {
 
             if (rId.getKind().equals("youtube#video")) {
 
+                linkModel = new LinksModel();
+
                 idList.add(rId.getVideoId());
                 getDuration(rId.getVideoId(), key);
 
                 thumbnail = singleVideo.getSnippet().getThumbnails().getDefault();
-                videoDuration = getDuration(rId.getVideoId(),key);
-/*
-                System.out.println("videoId : "+rId.getVideoId());
-                System.out.println("video duration : "+ videoDuration);
-*/
+                videoDuration = getDuration(rId.getVideoId(), key);
+
                 linkModel.setUrl("https://www.youtube.com/watch?v=" + rId.getVideoId());
                 linkModel.setTitle(singleVideo.getSnippet().getTitle());
                 linkModel.setDescription(singleVideo.getSnippet().getDescription());
@@ -146,10 +159,11 @@ public class YouTubeCrawler {
     private String getDuration(String id, String apiKey) {
         String duration = "";
         String url = "https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=" + id + "&key=" + apiKey;
-        ;
+
         JSONObject itemJsonObject = null;
+
         try {
-            itemJsonObject = new JSONObject(sendDurationRequest(url).replace("[","").replace("]",""));
+            itemJsonObject = new JSONObject(sendDurationRequest(url).replace("[", "").replace("]", ""));
             duration = itemJsonObject.getJSONObject("items").getJSONObject("contentDetails").getString("duration");
         } catch (JSONException e) {
             e.printStackTrace();
@@ -158,11 +172,10 @@ public class YouTubeCrawler {
         return convertTime(duration);
     }
 
-
     private String sendDurationRequest(String youtubeUrl) {
 
         String USER_AGENT = "Mozilla/5.0";
-        String res="";
+        String res = "";
         URL obj = null;
         try {
             obj = new URL(youtubeUrl);
@@ -192,7 +205,7 @@ public class YouTubeCrawler {
         return res;
     }
 
-    private String convertTime(String encTime){
+    private String convertTime(String encTime) {
 
         String pattern = new String("^PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+))S?$");
 
@@ -204,8 +217,8 @@ public class YouTubeCrawler {
             String hh = m.group(1);
             String mm = m.group(2);
             String ss = m.group(3);
-            mm = mm !=null?mm:"0";
-            ss = ss !=null?ss:"0";
+            mm = mm != null ? mm : "0";
+            ss = ss != null ? ss : "0";
             result = String.format("%02d:%02d", Integer.parseInt(mm), Integer.parseInt(ss));
 
             if (hh != null) {
@@ -216,5 +229,27 @@ public class YouTubeCrawler {
         }
         return result;
 
+    }
+
+    private void sendStartProcessingRequest(ArrayList<String> videoIds) throws UnsupportedEncodingException {
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        HttpPost postRequest = new HttpPost(procServerUrl);
+        Gson gson = new Gson();
+
+        String json = gson.toJson(videoIds);
+        System.out.println(json);
+        postRequest.setEntity(new StringEntity(json));
+        postRequest.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+
+        try (CloseableHttpResponse httpResponse = httpClient.execute(postRequest)) {
+            String content = EntityUtils.toString(httpResponse.getEntity());
+
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            System.out.println("statusCode = " + statusCode);
+            System.out.println("content = " + content);
+        } catch (IOException e) {
+            //handle exception
+            e.printStackTrace();
+        }
     }
 }
