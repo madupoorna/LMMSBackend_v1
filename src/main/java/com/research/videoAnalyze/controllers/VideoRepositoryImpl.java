@@ -115,8 +115,11 @@ public class VideoRepositoryImpl implements VideoRepository {
             if (filtModel.getDuration3() != false) {
                 criterList.add( criter.where("duration3").is(filtModel.getDuration3()));
             }
-            Criteria criteria1 = new Criteria().andOperator(criterList.toArray(new Criteria[criterList.size()]));
-            query.addCriteria(criteria1);
+
+            if(criterList.size() > 0) {
+                Criteria criteria1 = new Criteria().andOperator(criterList.toArray(new Criteria[criterList.size()]));
+                query.addCriteria(criteria1);
+            }
 
         }
 
