@@ -10,20 +10,19 @@ public class VideoModel {
     @Id
     public String id;
 
-    @Indexed(unique = true)
     private String videoUrl;
-
     private String title;
     private String thumbnailUrl;
-    private String duration1;// >20
-    private String duration2;// <4
-    private String duration3;// 4-20
+    private String duration;
     private String description;
     private String searchKeywords;
 
-    private String filter1;// quality(resolution HD)
-    private String filter2;// presenter visible in  the video
-    private String filter3;// code visible in the video
+    private boolean duration1;// >20
+    private boolean duration2;// <4
+    private boolean duration3;// 4-20
+    private boolean filter1;// quality(resolution HD)
+    private boolean filter2;// presenter visible in  the video
+    private boolean filter3;// code visible in the video
     private boolean filter4;// IDE : Eclipse
     private boolean filter5;// IDE : Intellij (Idea, Pycharm, webstorm)
     private boolean filter6;// IDE : Visual studio
@@ -63,27 +62,35 @@ public class VideoModel {
         this.thumbnailUrl = thumbnailUrl;
     }
 
-    public String getDuration1() {
+    public String getDuration() {
+        return duration;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
+    }
+
+    public boolean getDuration1() {
         return duration1;
     }
 
-    public void setDuration1(String duration1) {
+    public void setDuration1(boolean duration1) {
         this.duration1 = duration1;
     }
 
-    public String getDuration2() {
+    public boolean getDuration2() {
         return duration2;
     }
 
-    public void setDuration2(String duration2) {
+    public void setDuration2(boolean duration2) {
         this.duration2 = duration2;
     }
 
-    public String getDuration3() {
+    public boolean getDuration3() {
         return duration3;
     }
 
-    public void setDuration3(String duration3) {
+    public void setDuration3(boolean duration3) {
         this.duration3 = duration3;
     }
 
@@ -103,27 +110,27 @@ public class VideoModel {
         this.searchKeywords = searchKeywords;
     }
 
-    public String getFilter1() {
+    public boolean getFilter1() {
         return filter1;
     }
 
-    public void setFilter1(String filter1) {
+    public void setFilter1(boolean filter1) {
         this.filter1 = filter1;
     }
 
-    public String getFilter2() {
+    public boolean getFilter2() {
         return filter2;
     }
 
-    public void setFilter2(String filter2) {
+    public void setFilter2(boolean filter2) {
         this.filter2 = filter2;
     }
 
-    public String getFilter3() {
+    public boolean getFilter3() {
         return filter3;
     }
 
-    public void setFilter3(String filter3) {
+    public void setFilter3(boolean filter3) {
         this.filter3 = filter3;
     }
 
@@ -182,6 +189,7 @@ public class VideoModel {
                         "title='%s', " +
                         "url='%s', " +
                         "thumbnailUrl='%s', " +
+                        "duration='%s', " +
                         "duration1='%s', " +
                         "duration2='%s', " +
                         "duration3='%s', " +
@@ -199,6 +207,7 @@ public class VideoModel {
                 title,
                 videoUrl,
                 thumbnailUrl,
+                duration,
                 duration1,
                 duration2,
                 duration3,

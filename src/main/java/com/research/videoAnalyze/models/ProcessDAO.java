@@ -9,19 +9,20 @@ import java.util.List;
 public class ProcessDAO {
 
     @Id
-    public String processId;
+    public String Id;
+
     private String userId;
     private String keywords;
     private FilterModel filters;
-    private String processFlag; //0 = processing completed, 1 = sent for processing, 2 = not processed
+    private String processFlag; //0 = processing completed, 1 = not processed, 2 = processing, 3 = email sent
     private List<String> linksList;
 
     public String getProcessId() {
-        return processId;
+        return Id;
     }
 
-    public void setProcessId(String processId) {
-        this.processId = processId;
+    public void setProcessId(String Id) {
+        this.Id = Id;
     }
 
     public String getUserId() {

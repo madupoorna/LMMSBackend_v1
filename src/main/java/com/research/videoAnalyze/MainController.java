@@ -1,12 +1,16 @@
 package com.research.videoAnalyze;
 
+import com.google.gson.Gson;
+import com.research.videoAnalyze.controllers.EmailService;
 import com.research.videoAnalyze.controllers.Processes;
 import com.research.videoAnalyze.controllers.VideoRepository;
+import com.research.videoAnalyze.controllers.YouTubeCrawler;
 import com.research.videoAnalyze.models.*;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +23,9 @@ public class MainController {
     VideoRepository videoRepository;
 
     /**
-     * @param model Identify related videos from db
+     * Identify related videos for search filters from db
+     *
+     * @param model
      * @return list of videos
      */
     @PostMapping("/api/index/evideos")
@@ -34,16 +40,16 @@ public class MainController {
     }
 
     /**
+     * identify and process new videos
      *
      * @param model
-     * identify and process new videos
      * @return
      */
     @PostMapping("/api/index/nvideos")
     @ResponseBody
     public ResponseEntity newSearch(@RequestBody SearchModel model) {
 
-        System.out.println("processing new search for keyword "+ model.getSearchKeyword());
+        System.out.println("processing new search for keyword " + model.getSearchKeyword());
 
         Processes proobj = new Processes();
 
@@ -53,106 +59,72 @@ public class MainController {
         FilterModel filtDAO = proobj.separateFilters(model.getFilters());
 
         List<VideoURLDAO> videoLinksList = videoRepository.getLLinks();
-       // System.out.println("videoLinksList"+ videoLinksList.get(0));
 
         List<String> list = proobj.getYouTubeVideoList(filtDAO, keyword, videoLinksList, "5");
 
-        ProcessDAO procObj = new ProcessDAO();
-        procObj.setUserId(userId);
-        procObj.setKeywords(keyword);
-        procObj.setFilters(filtDAO);
-        procObj.setLinksList(list);
-        procObj.setProcessFlag("2");
+        for(String id : list) {
+            System.out.println("links :" + id);
+        }
 
-        videoRepository.insertProcess(procObj);//add process
+        videoRepository.insertProcess(userId, keyword, filtDAO, list);//add process
         System.out.println("added process to database");
 
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    @PostMapping("/api/index/test")
-    @ResponseBody
-    public ResponseEntity test(@RequestBody ProcessDAO model) {
+    /**
+     * save processed new video
+     * @param payload
+     */
+    @PostMapping("/api/index/create")
+    public void save(@RequestBody String payload) throws JSONException {
 
-        System.out.println("post received for processing python backend");
-        System.out.println(model.getKeywords());
-        System.out.println(model.getFilters());
+        Gson gson = new Gson();
 
-        return new ResponseEntity(HttpStatus.OK);
+        String jsonInString = payload.replace("\\","");
+        JsonModel model = gson.fromJson(jsonInString, JsonModel.class);
+
+        System.out.println("payload : " + model);
+        List<String> urls = model.getUrlList();
+
+        for (String url : urls){
+            System.out.println(url);
+        }
+
+        YouTubeCrawler proobj = new YouTubeCrawler();
+//        Processes emailObj = new Processes();
+        String id;
+
+        for (String url : urls) {
+            id = url.trim().replace("https://www.youtube.com/watch?v=", "");
+            ReturnModel obj = proobj.getDetailsById(id);
+            videoRepository.updateDetailsInVideo(obj.getVideourl(), obj.getUpdate());
+        }
+
+        System.out.println("finished");
     }
 
-/*
-    @RequestMapping("/api/index/create")
-    public void save() {
-
+    @GetMapping("create")
+    public String createCollection(){
         videoRepository.createCollection();
-
-        VideoModel model = new VideoModel();
-        model.setTitle("C# Fundamentals for Absolute Beginners");
-        model.setVideoUrl("https://www.youtube.com/watch?v=nRjHGKaJY8M");
-        model.setDuration("8:17:56");
-        model.setDescription("C# Basics for Beginners: Learn C# Fundamentals by Coding ☞ http://deal.codetrick.net/p/BkW_5OZng C# Advanced Topics: Take Your C# Skills to the Next Level");
-        model.setThumbnailUrl("https://i.ytimg.com/vi/nRjHGKaJY8M/hqdefault.jpg?sqp=-oaymwEXCPYBEIoBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDAFucMbxu4oYL1MjChDY_XGfGTTQ");
-        model.setSearchKeywords("c# programming, c sharp progrmming , c# for beginners, c sharp for beginners, c# from scratch, c#, c sharp, basics, Fundamentals");
-        model.setFilter1("720p");
-        model.setFilter2("true");
-        model.setFilter3("true");
-        model.setFilter4("false");
-        model.setFilter5("false");
-        model.setFilter6("false");
-        model.setFilter7("false");
-        model.setFilter8("false");
-        model.setFilter9("false");
-
-        videoRepository.saveVideo(model);
-    }*/
-
-/*
-    @PostMapping("/api/index/nvideos")
-    @ResponseBody
-    public List<LinksModel> searchInYouTube(@RequestBody SearchModel model) {
-
-//    duration > 20 min,       long
-//    duration < 4 min,        short
-//    duration (4 - 20) min,   medium
-//    HD quality,              HD
-//    presenter visible in  the video,
-//    code visible in the video,
-//    IDE : Eclipse,
-//    IDE : Intellij (Idea, Pycharm, webstorm),
-//    IDE : Visual studio,
-//    IDE : Net beans,
-//    IDE : Visual studio Code,
-//    IDE : Android studio
-
-        System.out.println("processing");
-
-        Processes proobj = new Processes();
-
-        String keyword = model.getSearchKeyword();
-
-        String duration;//any,long,medium,short
-        if (proobj.separateFilters(model.getFilters()).get("duration") != null) {
-            duration = proobj.separateFilters(model.getFilters()).get("duration");
-        } else {
-            duration = "any";
-        }
-        String quality;//any,high,standard
-        if (proobj.separateFilters(model.getFilters()).get("quality") != null) {
-            quality = proobj.separateFilters(model.getFilters()).get("quality");
-        } else {
-            quality = "any";
-        }
-        String noOfResults = "5";
-
-        parameters = new HashMap<>();
-        parameters.put("q", keyword);
-        parameters.put("videoDuration", duration);
-        parameters.put("videoDefinition", quality);
-        parameters.put("maxResults", noOfResults);
-
-        //return new YouTubeCrawler().search(parameters);
+        return "created ";
     }
-*/
+
+    @GetMapping("drop")
+    public String dropCollection(){
+        videoRepository.dropCollection();
+        return "dropped";
+    }
+
+    @GetMapping("get")
+    public List<VideoModel> getCollection(){
+        return  videoRepository.getAllVideos();
+    }
+
+    @GetMapping("test")
+    public String test(){
+        System.out.println("test");
+        return "created ";
+    }
 
 }

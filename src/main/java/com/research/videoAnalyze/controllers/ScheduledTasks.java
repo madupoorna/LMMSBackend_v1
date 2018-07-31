@@ -12,6 +12,9 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class ScheduledTasks {
@@ -22,23 +25,38 @@ public class ScheduledTasks {
     @Autowired
     VideoRepository videoRepository;
 
+    List<ProcessDAO> list;
+    Processes procObj;
+
     private static final SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("HH:mm:ss");
 
     @Scheduled(fixedRate = 120000)
-    public void scheduleTaskWithFixedRate() throws UnsupportedEncodingException, MalformedURLException, URISyntaxException {
-        System.out.println("Fixed Rate Task :: Execution Time - {}" + dateTimeFormatter.format(new Date()));
+    public void scheduleTaskWithFixedRate() {
+        System.out.println("Scheduled Task started:: Execution Time - { " + dateTimeFormatter.format(new Date()) + " }");
 
-        ProcessDAO procObj = videoRepository.getIncompleteProcesses();
+        //send processing completed email to users
+        list = videoRepository.get50CompletedProcessesList();
+        procObj = new Processes();
 
-        if (procObj != null) {
+        for(ProcessDAO dao : list){
+            String userId = dao.getUserId();
 
-            String uri = backendurl;
-            String result;
+            //get user email from database
+            String receiverEmail = "";
 
-            RestTemplate restTemplate = new RestTemplate();
-            result = restTemplate.postForObject(uri, procObj, String.class);
-
-            System.out.println("backend post result " + result);
+            //procObj.sendEmail(receiverEmail , );
         }
+
+
+        //send request to python backend check unprocessed videos
+       String uri = backendurl;
+        String result;
+
+        Map<String, String> map = new HashMap<>();
+        map.put("start","start");
+
+        RestTemplate restTemplate = new RestTemplate();
+        result = restTemplate.postForObject(uri, map, String.class);
+        System.out.println(result);
     }
 }
