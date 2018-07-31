@@ -35,7 +35,7 @@ public class ScheduledTasks {
         System.out.println("Scheduled Task started:: Execution Time - { " + dateTimeFormatter.format(new Date()) + " }");
 
         //send processing completed email to users
-        list = videoRepository.get50CompletedProcessesList();
+/*        list = videoRepository.get50CompletedProcessesList();
         procObj = new Processes();
 
         for(ProcessDAO dao : list){
@@ -46,10 +46,10 @@ public class ScheduledTasks {
 
             //procObj.sendEmail(receiverEmail , );
         }
-
+*/
 
         //send request to python backend check unprocessed videos
-       String uri = backendurl;
+/*       String uri = backendurl;
         String result;
 
         Map<String, String> map = new HashMap<>();
@@ -57,6 +57,6 @@ public class ScheduledTasks {
 
         RestTemplate restTemplate = new RestTemplate();
         result = restTemplate.postForObject(uri, map, String.class);
-        System.out.println(result);
+        System.out.println(result);*/
     }
 }

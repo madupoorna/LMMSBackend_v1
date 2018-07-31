@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.index.TextIndexDefinition;
 import org.springframework.data.mongodb.core.query.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -75,48 +76,51 @@ public class VideoRepositoryImpl implements VideoRepository {
         Query query = TextQuery.queryText(criteria).sortByScore();
 
         Criteria criter = new Criteria();
+        List<Criteria> criterList = new ArrayList<>();
 
         if (!filtModel.getEmptyFilt()) {
             if (filtModel.getFilter1() != false) {
-                criter = criter.where("filter1").is(filtModel.getFilter1());
+                criterList.add(criter.where("filter1").is(filtModel.getFilter1()));
             }
             if (filtModel.getFilter2() != false) {
-                criter = criter.where("filter2").is(filtModel.getFilter2());
+                criterList.add(criter.where("filter2").is(filtModel.getFilter2()));
             }
             if (filtModel.getFilter3() != false) {
-                criter = criter.where("filter3").is(filtModel.getFilter3());
+                criterList.add(criter.where("filter3").is(filtModel.getFilter3()));
             }
             if (filtModel.getFilter4() != false) {
-                criter = criter.where("filter4").is(filtModel.getFilter4());
+                criterList.add(criter.where("filter4").is(filtModel.getFilter4()));
             }
             if (filtModel.getFilter5() != false) {
-                criter = criter.where("filter5").is(filtModel.getFilter5());
+                criterList.add(criter.where("filter5").is(filtModel.getFilter5()));
             }
             if (filtModel.getFilter6() != false) {
-                criter = criter.where("filter6").is(filtModel.getFilter6());
+                criterList.add(criter.where("filter6").is(filtModel.getFilter6()));
             }
             if (filtModel.getFilter7() != false) {
-                criter = criter.where("filter7").is(filtModel.getFilter7());
+                criterList.add(criter.where("filter7").is(filtModel.getFilter7()));
             }
             if (filtModel.getFilter8() != false) {
-                criter = criter.where("filter8").is(filtModel.getFilter8());
+                criterList.add(criter.where("filter8").is(filtModel.getFilter8()));
             }
             if (filtModel.getFilter9() != false) {
-                criter = criter.where("filter9").is(filtModel.getFilter9());
+                criterList.add(criter.where("filter9").is(filtModel.getFilter9()));
             }
             if (filtModel.getDuration1() != false) {
-                criter = criter.where("duration1").is(filtModel.getDuration1());
+                criterList.add(criter.where("duration1").is(filtModel.getDuration1()));
             }
             if (filtModel.getDuration2() != false) {
-                criter = criter.where("duration2").is(filtModel.getDuration2());
+                criterList.add(criter.where("duration2").is(filtModel.getDuration2()));
             }
             if (filtModel.getDuration3() != false) {
-                criter = criter.where("duration3").is(filtModel.getDuration3());
+                criterList.add( criter.where("duration3").is(filtModel.getDuration3()));
             }
-
-            query.addCriteria(new Criteria().andOperator(criter));
+            Criteria criteria1 = new Criteria().andOperator(criterList.toArray(new Criteria[criterList.size()]));
+            query.addCriteria(criteria1);
 
         }
+
+        System.out.println("query : " + query);
 
         TextIndexDefinition textIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
                 .onField("title")

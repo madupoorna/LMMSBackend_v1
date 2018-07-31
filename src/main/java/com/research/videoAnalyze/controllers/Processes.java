@@ -25,8 +25,6 @@ public class Processes {
         if (filtList != null) {
             for (String value : filtList) {
 
-                System.out.println("value " + value);
-
                 if (value.contains("quality")) {
                     filtModel.setFilter1(true);
                     //filterLsMap.put("quality", "high");
