@@ -115,14 +115,13 @@ public class MainController {
 
         ProcessDAO procObj = videoRepository.getProcessDetailsById(processId);
 
-        String keyword = procObj.getKeywords();
-        System.out.println("userId : " + procObj.getUserId());
-
         UserModel userModel = videoRepository.getUserDetailsById(procObj.getUserId());
 
+        String keyword = procObj.getKeywords();
         String userName = userModel.getUserName();
-        String receiverEmail = "madupoorna9@gmail.com";//userModel.getEmail();
+        String receiverEmail = userModel.getEmail();
 
+        System.out.println("userId : " + procObj.getUserId());
         System.out.println("receiver email : " + receiverEmail);
         System.out.println("username : " + userName);
         System.out.println("keyword : " + keyword);
