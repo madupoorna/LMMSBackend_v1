@@ -2,7 +2,7 @@ package com.research.videoAnalyze.models;
 
 import java.util.List;
 
-public class OntologyDAO {
+public class OntologyModel {
 
     List<String> languages;
     List<String> stopWords;

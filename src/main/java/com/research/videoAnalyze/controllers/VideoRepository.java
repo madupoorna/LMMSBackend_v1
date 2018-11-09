@@ -1,10 +1,7 @@
 package com.research.videoAnalyze.controllers;
 
 import com.google.api.services.youtube.model.Video;
-import com.research.videoAnalyze.models.FilterModel;
-import com.research.videoAnalyze.models.ProcessDAO;
-import com.research.videoAnalyze.models.VideoURLDAO;
-import com.research.videoAnalyze.models.VideoModel;
+import com.research.videoAnalyze.models.*;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
@@ -29,6 +26,10 @@ public interface VideoRepository {
     void insertProcess(String userId, String keyword, FilterModel filtDAO, List<String> list);
 
     void updateDetailsInVideo(String videoUrl, Update update);
+
+    ProcessDAO getProcessDetailsById(String processId);
+
+    UserModel getUserDetailsById(String userId);
 
     List<ProcessDAO> get50CompletedProcessesList();
 

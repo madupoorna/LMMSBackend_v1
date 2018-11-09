@@ -1,12 +1,13 @@
 package com.research.videoAnalyze.controllers;
 
 import com.google.api.services.youtube.model.Video;
-import com.research.videoAnalyze.models.FilterModel;
-import com.research.videoAnalyze.models.ProcessDAO;
-import com.research.videoAnalyze.models.VideoModel;
-import com.research.videoAnalyze.models.VideoURLDAO;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.research.videoAnalyze.models.*;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.index.TextIndexDefinition;
@@ -216,6 +217,24 @@ public class VideoRepositoryImpl implements VideoRepository {
     public List<ProcessDAO> get50CompletedProcessesList() {
 
         return mongoTemplate.find(Query.query(Criteria.where("processFlag").is("3")).limit(50), ProcessDAO.class);
+
+    }
+
+    public ProcessDAO getProcessDetailsById(String processId){
+
+        Query query = new Query();
+        ObjectId objID = new ObjectId(processId);
+        query.addCriteria(Criteria.where("_id").is(objID));
+        return mongoTemplate.findOne(query, ProcessDAO.class);
+
+    }
+
+    public UserModel getUserDetailsById(String userId){
+
+        Query query = new Query();
+        ObjectId objID = new ObjectId(userId);
+        query.addCriteria(Criteria.where("_id").is(objID));
+        return mongoTemplate.findOne(query, UserModel.class);
 
     }
 }

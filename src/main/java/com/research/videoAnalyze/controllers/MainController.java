@@ -1,19 +1,22 @@
-package com.research.videoAnalyze;
+package com.research.videoAnalyze.controllers;
 
 import com.google.gson.Gson;
-import com.research.videoAnalyze.controllers.EmailService;
-import com.research.videoAnalyze.controllers.Processes;
-import com.research.videoAnalyze.controllers.VideoRepository;
-import com.research.videoAnalyze.controllers.YouTubeCrawler;
 import com.research.videoAnalyze.models.*;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.internet.MimeMessage;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -21,6 +24,12 @@ public class MainController {
 
     @Autowired
     VideoRepository videoRepository;
+
+    @Autowired
+    JavaMailSender sender;
+
+    @Autowired
+    Configuration freemarkerConfig;
 
     /**
      * Identify related videos for search filters from db
@@ -85,14 +94,17 @@ public class MainController {
         JsonModel model = gson.fromJson(jsonInString, JsonModel.class);
 
         System.out.println("payload : " + model);
+
         List<String> urls = model.getUrlList();
+        String processId = model.getProcess_id();
+
+        System.out.println("processId : "+ processId);
 
         for (String url : urls){
             System.out.println(url);
         }
 
         YouTubeCrawler proobj = new YouTubeCrawler();
-//        Processes emailObj = new Processes();
         String id;
 
         for (String url : urls) {
@@ -101,7 +113,42 @@ public class MainController {
             videoRepository.updateDetailsInVideo(obj.getVideourl(), obj.getUpdate());
         }
 
-        System.out.println("finished");
+        ProcessDAO procObj = videoRepository.getProcessDetailsById(processId);
+
+        String keyword = procObj.getKeywords();
+        System.out.println("userId : " + procObj.getUserId());
+
+        UserModel userModel = videoRepository.getUserDetailsById(procObj.getUserId());
+
+        String userName = userModel.getUserName();
+        String receiverEmail = "madupoorna9@gmail.com";//userModel.getEmail();
+
+        System.out.println("receiver email : " + receiverEmail);
+        System.out.println("username : " + userName);
+        System.out.println("keyword : " + keyword);
+
+        //send email
+        try {
+            MimeMessage message = sender.createMimeMessage();
+
+            MimeMessageHelper helper = new MimeMessageHelper(message);
+
+            Map<String, Object> mailModel = new HashMap();
+            mailModel.put("user", userName);
+            mailModel.put("searchWord", keyword);
+
+            Template t = freemarkerConfig.getTemplate("email.ftl");
+            String text = FreeMarkerTemplateUtils.processTemplateIntoString(t, mailModel);
+
+            helper.setTo(receiverEmail);
+            helper.setText(text, true); // set to html
+            helper.setSubject("Hi");
+
+            sender.send(message);
+            System.out.println("Email sent");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @GetMapping("create")

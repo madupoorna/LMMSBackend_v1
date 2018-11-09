@@ -3,7 +3,7 @@ package com.research.videoAnalyze.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.research.videoAnalyze.models.FilterModel;
 import com.research.videoAnalyze.models.MailModel;
-import com.research.videoAnalyze.models.OntologyDAO;
+import com.research.videoAnalyze.models.OntologyModel;
 import com.research.videoAnalyze.models.VideoURLDAO;
 import org.springframework.core.io.ClassPathResource;
 
@@ -205,9 +205,9 @@ public class Processes {
         return searchKeywords;
     }
 
-    private OntologyDAO readJson() throws IOException {
+    private OntologyModel readJson() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        OntologyDAO words = objectMapper.readValue(new ClassPathResource("words.json").getFile(), OntologyDAO.class);
+        OntologyModel words = objectMapper.readValue(new ClassPathResource("words.json").getFile(), OntologyModel.class);
         return words;
     }
 
