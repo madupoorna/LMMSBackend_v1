@@ -12,6 +12,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import javax.mail.internet.MimeMessage;
 import java.util.HashMap;
@@ -77,6 +78,12 @@ public class MainController {
 
         videoRepository.insertProcess(userId, keyword, filtDAO, list);//add process
         System.out.println("added process to database");
+        
+        Map<String, String> map = new HashMap<>();
+        map.put("start","start");
+
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.postForObject("http://35.237.13.154:5000/start", map, String.class);
 
         return new ResponseEntity(HttpStatus.OK);
     }
